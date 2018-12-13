@@ -1,0 +1,22 @@
+# This file stores the essential information that are required:
+# 1. NGS data storage: 28 42 library (in the order of)
+#  a. NCBI: SRR IDs separated by tab
+#  b. Local: local directory
+# 2. WT sequence: draw from pBA0239.dna file
+# 3. Amplicon locations: draw from pBA0239.dna file
+# 4. Mutation site in WT coordination
+# 5. Experiment conditions: 28 42 lib 
+
+**********BELOW are configurations**********
+
+NGS data storage(if NCBI): SRR6790350 SRR6790351 SRR6790352
+NGS data storage(if local): to be replaced with local directory
+
+WT fasta: /Users/Kai/Desktop/GitHub/DMS_project/ref/AuNrdF.fa
+
+Amplicon locations: (1,237) (210,429) (452,696) (779,1011)
+
+Mutation coordination in WT:(139,145) (232,253,262,277,343,355,364,367) (478,523,541,625,628,637,640,646) (844,)
+
+Condition: NrdF_28 NrdF_42 NrdF_lib
+
