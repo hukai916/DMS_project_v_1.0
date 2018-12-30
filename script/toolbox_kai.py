@@ -61,7 +61,6 @@ def parse_bamfile(bamfile, wtfile):
     wt_name = wtfile.name
     bamfile = pysam.AlignmentFile(bamfile, 'rb')
     itr = list(bamfile.fetch(wt_name))[:] # Note the ref seq name must match its file name.
-    #print(len(itr))
 
     target = [[item.cigartuples,
                item.query_name,
@@ -82,8 +81,5 @@ def parse_bamfile(bamfile, wtfile):
     df['Cigar_first'] = df.apply(lambda row:row['Cigar'][0][0], axis=1)
     df['Query_name']  = [item.query_name for item in itr]
     df['Mut_pos'] = df.apply(lambda row: md2list(row['Query_md'], row['Ref_pos'][0]), axis=1)
-    #print(df['Mut_pos'].head())
-
-    #df['Reference_positions(full_length=True)[0]'] = get_reference_positions(full_length=True)[0]
 
     return(df)

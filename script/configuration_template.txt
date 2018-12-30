@@ -1,0 +1,21 @@
+# This file stores the essential information that are required to run the pipeline via command line mode.
+# 1. NGS data: 28 42 library (The order must match the order in 5, the input library is a must, and must be put at the last). Data can be retrieved from NCBI SRR ID or local storage, see a and b below. If both provided, the local copy will be used.
+#  a. NCBI: SRR IDs separated by single space
+#  b. Local: local raw read files with full path separated by single space
+# 2. WT sequence: fasta file containing the reference sequence
+# 3. Amplicon range: enclosed in parenthesis for each amplicon location
+# 4. Mutation site in WT coordination: enclosed in parenthesis for each amplicon
+# 5. Experiment conditions: 28 42 lib 
+
+**********BELOW are configurations, example**********
+
+NGS data storage(if NCBI): SRR6790350 SRR6790351 SRR6790352
+NGS data storage(if local): /Users/Kai/Desktop/GitHub/DMS_project_v_1.0/results/Ie_combined_2018_01_08_2018_07_30/config/Ie_combine_28_R1.fastq /Users/Kai/Desktop/GitHub/DMS_project_v_1.0/results/Ie_combined_2018_01_08_2018_07_30/config/Ie_combine_28_R2.fastq /Users/Kai/Desktop/GitHub/DMS_project_v_1.0/results/Ie_combined_2018_01_08_2018_07_30/config/Ie_combine_42_R1.fastq /Users/Kai/Desktop/GitHub/DMS_project_v_1.0/results/Ie_combined_2018_01_08_2018_07_30/config/Ie_combine_42_R2.fastq /Users/Kai/Desktop/GitHub/DMS_project_v_1.0/results/Ie_combined_2018_01_08_2018_07_30/config/Ie_combine_lib_R1.fastq /Users/Kai/Desktop/GitHub/DMS_project_v_1.0/results/Ie_combined_2018_01_08_2018_07_30/config/Ie_combine_lib_R2.fastq
+
+WT fasta: /Users/Kai/Desktop/GitHub/DMS_project/ref/AuNrdF.fa
+
+Amplicon locations: (1,237) (210,429) (452,696) (779,1011)
+
+Mutation coordination in WT:(139,145) (232,253,262,277,343,355,364,367) (478,523,541,625,628,637,640,646) (844,)
+
+Condition: NrdF_28 NrdF_42 NrdF_lib

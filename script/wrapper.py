@@ -16,7 +16,7 @@ import os
 import glob # Unix style pathname pattern expansion, this seems to work better then Path().glob()
 from Bio import SeqIO
 from constants import CodonList, AA2CODON, AAList
-from Bio import SeqIO
+from Bio import SeqIO			
 
 class ConfigParam(): # store the configuration paramters
     def __init__(self, configFile):
@@ -145,6 +145,7 @@ def fastq_merger(param, folder_data_sra, folder_merge):
         except:
             print("Step1: merging failed!")
             error = 1
+            # Note that if bbmerge.sh is not installed, the error will not be set to 1 because all error infor are ouptut to os.devnull.
     if not error:
         print("Step1: merge succeeded!")
 
@@ -326,7 +327,6 @@ def bam2enrich_wrapper(param, folder_second_mapper, folder_enrich2_input):
                            'Query_name'
                            'Mut_pos' # list object, mapped query mutation site onto reference.
                            ‘Which_amplicon’ # stores the amplicon id, starting from 1
-
                 """
 
                 count_INDEL = df[~((df['Cigar_len'] == 1) & (df['Cigar_first'] == 0))].count()
@@ -368,7 +368,22 @@ def bam2enrich_wrapper(param, folder_second_mapper, folder_enrich2_input):
                 wtseq = next(wtseq).seq
                 for i in range(len(param.mut_pos)):
                     for site in param.mut_pos[i]:
-                        df_subset = df[(df["Which_mut_site"]==site) | (df["Which_mut_site"]=='wt') & (df["Which_amplicon"]==i+1)].copy()
+                        df_subset = df[(df["Which_mut_site"]==site) |
+                                       (df["Which_mut_site"]=='wt') &
+                                       (df["Which_amplicon"]==i+1)].copy()
+                       # df_subset keeps only the sequences that have a single mutated aa at the specified site or wt.
+                       # This, however, will also keep wt fragment that don't cover target mutation site. This can cause trouble.
+                       # Use _fragment_filter to get rid of those fragments.
+
+                        def _fragment_filter(row): # to remove fragments that don't cover mutation site
+                            for pos in param.mut_pos[i]:
+                                if not pos in row['Ref_pos']:
+                                    return("Yes")
+                            return("No")
+
+                        df_subset['Fragment'] = df_subset.apply(lambda row: _fragment_filter(row), axis=1)
+                        df_subset = df_subset[df_subset['Fragment'] == "No"]
+
 
                         df_subset["Which_mut_site2"] = site
 
@@ -404,7 +419,7 @@ def enrich2_json_encoder_wrapper(param, folder_enrich2_json, folder_enrich2_inpu
         json_commandfile_name = folder_enrich2_json.joinpath("json.sh")
         json_commandfile_name.touch(exist_ok=True)
         json_commandfile = open(json_commandfile_name, 'w+')
-        json_commandfile.write("source activate py2\n")
+        json_commandfile.write("source activate py2-test\n")
         try:
             for cond in condition_list:
                 for mut in param.mut_list:
@@ -434,11 +449,11 @@ def enrich2_wrapper(json_bashfile, folder_enrich2_output):
         error = 1
     else:
         print("Step8: performing Enrich2 ...")
-        try:
+        if 1:
             folder_enrich2_output.mkdir(parents=True, exist_ok=True)
             command = "bash " + json_bashfile.as_posix()
             subprocess.run(command, shell=True, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
-        except:
+        else:
             error = 1
     if not error:
         print("Step8: Enrich2 performed, results saved in enrich2_output folder!")
@@ -474,7 +489,7 @@ def enrich2_hdf5_extractor_wrapper(param, folder_enrich2_output, _type='codon'):
         if _type == 'codon':
             print("Step9: extracting codon data from Enrich2 output hdf5 files ...")
         else: print("Step9: extracting aa data by re-running Enrich2 via count mode ...")
-        try:
+        if 1:
             folder_enrich2_output_tsv.mkdir(parents=True, exist_ok=True)
             for cond in condition_list:
                 for mut in param.mut_list:
@@ -531,7 +546,7 @@ def enrich2_hdf5_extractor_wrapper(param, folder_enrich2_output, _type='codon'):
                     """
                     Above save preprocessed df into tsv folder.
                     """
-        except:
+        else:
             error = 1
             print("Step9: information extraction failed!")
 
@@ -621,7 +636,7 @@ def tsv_plot_output_wrapper(param, folder_plot_input, folder_plot_output_codon):
     else:
         print("Step11: preparing plot output files (codon version) ...")
         folder_plot_output_codon.mkdir(parents=True, exist_ok=True)
-        try:
+        if 1:
             # Plot1:
             for cond in param.condition[:-1]:
                 df1      = pd.read_csv(folder_plot_input.joinpath(cond+'.tsv'), delimiter='\t')
@@ -639,11 +654,11 @@ def tsv_plot_output_wrapper(param, folder_plot_input, folder_plot_output_codon):
                         df2.drop(columns=col, inplace=True)
                             # Note tat np.nan != np.nan
                 outfile2 = folder_plot_output_codon.joinpath(cond + '_simple1.pdf')
-                tsv_plot_output(param.wtfile, cond, df2, df_se=df_se, outfilename=outfile2)
+                tsv_plot_output(param.wtfile, cond, df2, df_se=df_se, outfilename=outfile2, version=2)
             # Plot3:
                 outfile3 = folder_plot_output_codon.joinpath(cond + '_simple2.pdf')
-                tsv_plot_output(param.wtfile, cond, df2, outfilename=outfile3)
-        except:
+                tsv_plot_output(param.wtfile, cond, df2, outfilename=outfile3, version=2)
+        else:
             error = 1
     if not error:
         print("Step11: plots (codon version) created!")
@@ -694,7 +709,7 @@ def tsv_plot_output_aa_wrapper(param, folder_plot_input, folder_plot_output_aa):
 
 def func_wrapper(param, workdir):
     error = 0
-    try:
+    if 1:
         folder_data_sra = workdir.joinpath('data_sra')
         if not param.ngs_data_local[0] == 'to': # If both NCBI sra and local storage provided, prefer to use local copy.
             get_ngs_data_local(param, folder_data_sra) # Step0: download and rename sra files
@@ -738,7 +753,7 @@ def func_wrapper(param, workdir):
 
         folder_plot_output_aa = workdir.joinpath('plot_output/aa')
         tsv_plot_output_aa_wrapper(param, folder_plot_input, folder_plot_output_aa)
-    except:
+    else:
         error = 1
 
     if not error:

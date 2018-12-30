@@ -1,4 +1,3 @@
-#!/anaconda3/envs/py3/bin/python
 # GUI for DMS project, powered by TKinter
 # Created by Kai, 2018
 import matplotlib
@@ -137,7 +136,7 @@ class App:
         self.amplicon_5_button.config(command=lambda: self.on_button(self.amplicon_5_button,
                                                                      self.amplicon_5_entry, 'amplicon_5_entry'))
 
-        self.mutation_label = ttk.Label(self.master, text='Target sites in WT: \ngroup by amplicon\nformat: (1) (61 X)', width=15)
+        self.mutation_label = ttk.Label(self.master, text='Target sites in WT \nfrom each amplicon:\nformat: (1) (61 XXX)', width=15)
         self.mutation_label.grid(row=20, column=0, rowspan=3)
         self.mutation_entry = ttk.Entry(self.master, width=29)
         self.mutation_entry.grid(row=20, column=1, rowspan=3, columnspan=2)
@@ -180,42 +179,44 @@ def main():
     app  = App(root)
     root.mainloop()
 
-    config = GuiParam(app.Dict)
-    config.wtfile = Path(app.Dict['wt_file_button'])
+    try:
+        config = GuiParam(app.Dict)
+        config.wtfile = Path(app.Dict['wt_file_button'])
 
-    for item in ['exp_1', 'exp_2', 'exp_0']:
-        for key in app.Dict:
-            if key.startswith(item):
-                if 'entry' in key:
-                    config.condition.append(app.Dict[key])
-                elif 'button' in key:
-                    config.ngs_data_local.append(app.Dict[key])
-    for item in ['amplicon_1_entry', 'amplicon_2_entry', 'amplicon_3_entry', 'amplicon_4_entry', 'amplicon_5_entry']:
-        for key in app.Dict:
-            if key == item:
-                config.amplicon.append(tuple(map(int,app.Dict[key].split('-'))))
-    if not 'mutation_entry' in app.Dict:
-        print("Not enough info provided to GUI, re-try please.")
-        exit()
-    else:
-        try:
-            start = app.Dict['mutation_entry']
-            _mut_list = [[y for y in x.split("(") if not y in ['', ' ']] for x in start.split(")") if not x in ['', ' ']]
-            _mut_list = [x[0] for x in _mut_list]
-            _mut_tuple = [(x+',').replace(' ', ',') for x in _mut_list]
-            _mut_tuple = list(map(make_tuple, _mut_tuple))
-            mut_tuple = sorted(_mut_tuple, key=lambda item: item[0])
-            config.mut_pos = mut_tuple
-            config.mut_list = [item for subtuple in mut_tuple for item in subtuple]
+        for item in ['exp_1', 'exp_2', 'exp_0']:
+            for key in app.Dict:
+                if key.startswith(item):
+                    if 'entry' in key:
+                        config.condition.append(app.Dict[key])
+                    elif 'button' in key:
+                        config.ngs_data_local.append(app.Dict[key])
+        for item in ['amplicon_1_entry', 'amplicon_2_entry', 'amplicon_3_entry', 'amplicon_4_entry', 'amplicon_5_entry']:
+            for key in app.Dict:
+                if key == item:
+                    config.amplicon.append(tuple(map(int,app.Dict[key].split('-'))))
+        if not 'mutation_entry' in app.Dict:
+            print("Not enough info provided to GUI, re-try please.")
+        else:
+            try:
+                start = app.Dict['mutation_entry']
+                _mut_list = [[y for y in x.split("(") if not y in ['', ' ']] for x in start.split(")") if not x in ['', ' ']]
+                _mut_list = [x[0] for x in _mut_list]
+                _mut_tuple = [(x+',').replace(' ', ',') for x in _mut_list]
+                _mut_tuple = list(map(make_tuple, _mut_tuple))
+                mut_tuple = sorted(_mut_tuple, key=lambda item: item[0])
+                config.mut_pos = mut_tuple
+                config.mut_list = [item for subtuple in mut_tuple for item in subtuple]
 
-            workdir    = Path(Path.cwd()).parents[0]
-            param = config
-            Path(workdir.joinpath('TemFolder')).mkdir(parents=True, exist_ok=True) # create a temperate folder to contain tem files.
+                workdir    = Path(Path.cwd()).parents[0]
+                param = config
+                Path(workdir.joinpath('TemFolder')).mkdir(parents=True, exist_ok=True) # create a temperate folder to contain tem files.
 
-            wrapper.func_wrapper(param, workdir)
-        except:
-            print("Incorrect information provided to GUI, re-try please.")
-            exit()
+                wrapper.func_wrapper(param, workdir)
+            except:
+                print("Incorrect information provided to GUI, re-try please.")
+    except:
+        print("Input format(s) incorrect! Please follow the input format examples and re-try.")
+
 
 if __name__ == "__main__":
     main()

@@ -1,12 +1,12 @@
 AAList		= ['Gly', 'Ala', 'Ser', 'Thr', 'Cys', 'Pro',
-	  			'Asn', 'Gln', 'Asp', 'Glu', 'His', 'Arg',
+	  			'Asn', 'Gln', 'Asp', 'Glu', 'His', 'Lys', 'Arg',
 	  			'Val', 'Ile', 'Leu', 'Met', 'Phe', 'Tyr',
 	  			'Trp', 'Ter', '???']
 
 AA_GROUPS 	= [('Polar',0,7), ('Charged',8,12), ('Non-polar',13,19)]
 
 Property2AA = dict([("Polar", ('Gly', 'Ala', 'Ser', 'Thr', 'Cys', 'Pro', 'Asn', 'Gln')),
-		    		("Charged", ('Asp', 'Glu', 'His', 'Arg')),
+		    		("Charged", ('Asp', 'Glu', 'His', 'Lys', 'Arg')),
 		    		("Non-polar", ('Val', 'Ile', 'Leu', 'Met', 'Phe', 'Tyr', 'Trp'))])
 
 CodonList 	= ["TTT","TTC","TTA","TTG","CTT","CTC","CTA",
@@ -67,7 +67,7 @@ CODON2AA 	= dict([("TTT",("Phe","F")),("TTC",("Phe","F")),("TTA",("Leu","L")),
 	                ("CAA",("Gln","Q")),("CAG",("Gln","Q")),("AAT",("Asn","N")),
 	                ("AAC",("Asn","N")),("AAA",("Lys","K")),("AAG",("Lys","K")),
 	                ("GAT",("Asp","D")),("GAC",("Asp","D")),("GAA",("Glu","E")),
-	                ("GAG",("GlT","E")),("TGT",("Cys","C")),("TGC",("Cys","C")),
+	                ("GAG",("Glu","E")),("TGT",("Cys","C")),("TGC",("Cys","C")),
 	                ("TGG",("Trp","W")),("CGT",("Arg","R")),("CGC",("Arg","R")),
 	                ("CGA",("Arg","R")),("CGG",("Arg","R")),("AGT",("Ser","S")),
 	                ("AGC",("Ser","S")),("AGA",("Arg","R")),("AGG",("Arg","R")),

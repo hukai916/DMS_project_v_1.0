@@ -1,3 +1,8 @@
+import matplotlib
+matplotlib.use('Agg')
+# Otherwise, python complains about not being built as a framework
+# Must be put at the very beginning in case that other packages import matplotlib
+
 from pathlib import Path
 import json
 import pandas as pd
@@ -7,7 +12,7 @@ import subprocess
 import os
 import shutil # use to remove non empty folders
 from toolbox_kai import wt_codon
-from constants import AA2CODON, CODON_GROUPS, CODON2AA, Property2AA, AA_GROUPS
+from constants import AA2CODON, CODON_GROUPS, CODON2AA, Property2AA, AA_GROUPS, CODON321
 from matplotlib import pyplot as plt
 from matplotlib.gridspec import GridSpec
 from matplotlib.colors import LinearSegmentedColormap
@@ -179,7 +184,7 @@ def enrich2_count_wrapper(c0_t, c1_t, c0, c1):
                         folder_json_tem.as_posix()])
 
     json_commandfile = open(folder_json_tem.joinpath('json.sh'), 'w+')
-    json_commandfile.write("source activate py2\n")
+    json_commandfile.write("source activate py2-dms\n")
     json_commandfile.write(json_command)
     json_commandfile.close()
 
@@ -303,14 +308,15 @@ def enrich2_hdf5_extractor2(wt_codon, score_file):
     df_raw.drop(['aa_list', 'index'], axis=1, inplace=True)
     return(df_raw)
 
-def tsv_plot_output(wtfile, cond, df, df_se=pd.DataFrame(), outfilename='test.pdf'):
+def tsv_plot_output(wtfile, cond, df, df_se=pd.DataFrame(), outfilename='test.pdf', version=1):
     """
     Read in score and se dataframes, output plots accordingly.
     wtfile: WT sequence file, used for y-labeling
     cond: The experiment condition, used for title info
     df: enrich score dataframe, from plot_input folder, can also used customized df
     df_se: enrich score dataframe, from plot_input folder, will match df (if customized) automatically
-    outfilename: outputfile path + filename, where to store the output
+    outfilename: outputfile path + filename, where to store the output.
+    Version controls the display of amino acid labels: in figure1(raw figure), use 3-letter; in figure2 and 2 (simple1 and simple2), use 1-letter.
     """
 
     row_number, col_number = df.shape
@@ -347,24 +353,36 @@ def tsv_plot_output(wtfile, cond, df, df_se=pd.DataFrame(), outfilename='test.pd
     # Find score range:
     ls = df_raw.values.reshape(1,-1).tolist()[0]
     ls = [x for x in ls if not np.isnan(x)]
-    vmin = sorted(set(ls))[0]
-    vmax = sorted(set(ls))[-2]
-    #print(vmin, vmax)
+
+    _ls = sorted(set(ls))
+    vmin = _ls[0]
+    if not _ls[-1] == 1000:
+        vmax = _ls[-1]
+    else:
+        vmax = _ls[-2]
 
     # Prepare a numpy array and mask NaNs for later plotting:
     arr_masked = np.ma.array(df_raw, mask=np.isnan(df_raw))
+
 
     # Get color map and set colors:
     cmap = plt.get_cmap("RdBu_r")
     colorlim = max(-vmin, vmax)
     # Recenter color map:
     cmap = recentered_cmap(cmap, -colorlim, colorlim)
+
+    # Rescale the color by cutting a fragment from it:
+    colors = [cmap(i) for i in range(65,200)]  # R -> G -> B
+    cmap_new = LinearSegmentedColormap.from_list('place_holder', colors)
+    # The new cmap_new will take advantage of old cmap, "shrink" the spectrum to make it lighter for better printing.
+
     # Set grey to NaN values, and black to totally depleted ones:
-    cmap.set_bad("#808080",1)
-    cmap.set_over("black")
+    cmap_new.set_bad("#808080",1)
+    rgba = cmap_new(0) # The darkest in the new cmap_new, equal to cmap(65)
+    cmap_new.set_over(rgba)
 
     # Plot the heatmap: return the value as mesn_pcolor as a mappable object in order to add color_bar:
-    mesh_pcolor = mesh_ax.pcolormesh(arr_masked, cmap=cmap, vmin=-colorlim, vmax=colorlim)
+    mesh_pcolor = mesh_ax.pcolormesh(arr_masked, cmap=cmap_new, vmin=-colorlim, vmax=colorlim)
 
 
     ## Below are modifications to plotting:
@@ -410,6 +428,7 @@ def tsv_plot_output(wtfile, cond, df, df_se=pd.DataFrame(), outfilename='test.pd
             new_CODON_GROUPS.append(newTuple)
 
     for codon, start, end in new_CODON_GROUPS:
+        if version == 2: codon = CODON321[codon]
         mesh_ax.text((end - start + 1) / 2 + start,
             row_number + 2.5, codon,
             horizontalalignment="center",
@@ -448,7 +467,7 @@ def tsv_plot_output(wtfile, cond, df, df_se=pd.DataFrame(), outfilename='test.pd
         if not x == np.nan:
             mesh_ax.add_patch(Circle((x + 0.5, y + 0.5), .1666,
             fill=True, facecolor="black",
-            edgecolor="none", alpha=0.8))
+            edgecolor="none", alpha=0.5))
 
     # Make the figure cleaner by removing ticks:
     mesh_ax.tick_params(bottom=False, left=False)
@@ -463,10 +482,17 @@ def tsv_plot_output(wtfile, cond, df, df_se=pd.DataFrame(), outfilename='test.pd
             if not col in df.columns: df_se.drop(columns=col, inplace=True)
         df_se = df_se[df_se['pos'].isin(df['pos'])]
 
+        # Below is to find max se value:
+        se_df = df_se.drop(columns=['pos'])
+        tem = sorted(se_df.values.reshape(1,-1).tolist()[0])
+        tem = [x for x in tem if not np.isnan(x)]
+        se_max = tem[-1]
+
         for row in range(len(df_se['pos'])):
             for col in range(len(df_se.columns)-1):
                 se_value = df_se.iloc[row, col]
-                corner_dist = (1-se_value)/2
+                corner_dist = (se_max - se_value)/(2 * se_max)
+                corner_dist = (1 - se_value) / 2
                 diag = Line2D([col + corner_dist, col + 1 - corner_dist],
                         [row + corner_dist, row + 1 - corner_dist], color="black")
 
@@ -520,8 +546,12 @@ def tsv_plot_output_aa(wtfile, cond, df, df_se=pd.DataFrame(), outfilename='test
     # Find score range:
     ls = df_raw.values.reshape(1,-1).tolist()[0]
     ls = [x for x in ls if not np.isnan(x)]
-    vmin = sorted(set(ls))[0]
-    vmax = sorted(set(ls))[-2]
+    _ls = sorted(set(ls))
+    vmin = _ls[0]
+    if not _ls[-1] == 1000:
+        vmax = _ls[-1]
+    else:
+        vmax = _ls[-2]
 
     # Prepare a numpy array and mask NaNs for later plotting:
     arr_masked = np.ma.array(df_raw, mask=np.isnan(df_raw))
@@ -624,7 +654,7 @@ def tsv_plot_output_aa(wtfile, cond, df, df_se=pd.DataFrame(), outfilename='test
         if not x == np.nan:
             mesh_ax.add_patch(Circle((x + 0.5, y + 0.5), .1666,
             fill=True, facecolor="black",
-            edgecolor="none", alpha=0.8))
+            edgecolor="none", alpha=0.5))
 
     # Make the figure cleaner by removing ticks:
     mesh_ax.tick_params(bottom=False, left=False)
@@ -638,10 +668,17 @@ def tsv_plot_output_aa(wtfile, cond, df, df_se=pd.DataFrame(), outfilename='test
             if not col in df.columns: df_se.drop(columns=col, inplace=True)
         df_se = df_se[df_se['pos'].isin(df['pos'])]
 
+        # Below is to find max se value:
+        se_df = df_se.drop(columns=['pos'])
+        tem = sorted(se_df.values.reshape(1,-1).tolist()[0])
+        tem = [x for x in tem if not np.isnan(x)]
+        se_max = tem[-1]
+
         for row in range(len(df_se['pos'])):
             for col in range(len(df_se.columns)-1):
                 se_value = df_se.iloc[row, col]
-                corner_dist = (1-se_value)/2
+                corner_dist = (se_max - se_value)/(2 * se_max)
+                corner_dist = (1 - se_value) / 2
                 diag = Line2D([col + corner_dist, col + 1 - corner_dist],
                         [row + corner_dist, row + 1 - corner_dist], color="black")
 

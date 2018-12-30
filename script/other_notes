@@ -1,7 +1,5 @@
 1. In GUI, the experiment name can't contain "-"
 2. Why in GUI, picking files so slow?
-3. Replace if 1 to try.
-4. Fastq seq must end with either R1.fastq or R2.fastq
 
 ### Amplicon1: AuF-NGS-9-F: 1
 	       AuF-NGS-73-R: 237
