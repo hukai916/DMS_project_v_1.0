@@ -12,12 +12,12 @@ Download and unzip the git folder, open terminal, then: <br>
 It will take several minutes to install all components.
 
 ## GUI approach
-After setup, do:
+After setup, do: <br>
 **bash gui.sh** <br>
 Input wild type sequence, raw reads file and mutation sites information accordingly.
 
 ## Command line approach
-To use command line approach, we need to provide with a configuration file. Then do:
+To use command line approach, we need to provide with a configuration file. Then do: <br>
 **bash wrapper.sh configuration.txt** <br>
 The configuration_template.txt file can be found inside script folder.
 
