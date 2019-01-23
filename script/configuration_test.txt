@@ -11,7 +11,7 @@
 
 NGS data storage(if NCBI): SRR6790350 SRR6790351 SRR6790352
 
-NGS data storage(if local): /Users/Kai/Desktop/GitHub/DMS_project_v_1.0/results/Ie_combined_2018_01_08_2018_07_30/config/Ie_combine_28_R1.fastq /Users/Kai/Desktop/GitHub/DMS_project_v_1.0/results/Ie_combined_2018_01_08_2018_07_30/config/Ie_combine_28_R2.fastq /Users/Kai/Desktop/GitHub/DMS_project_v_1.0/results/Ie_combined_2018_01_08_2018_07_30/config/Ie_combine_42_R1.fastq /Users/Kai/Desktop/GitHub/DMS_project_v_1.0/results/Ie_combined_2018_01_08_2018_07_30/config/Ie_combine_42_R2.fastq /Users/Kai/Desktop/GitHub/DMS_project_v_1.0/results/Ie_combined_2018_01_08_2018_07_30/config/Ie_combine_lib_R1.fastq /Users/Kai/Desktop/GitHub/DMS_project_v_1.0/results/Ie_combined_2018_01_08_2018_07_30/config/Ie_combine_lib_R2.fastq
+NGS data storage(if local):  
 
 WT fasta: /Users/Kai/Desktop/GitHub/DMS_project/ref/AuNrdF.fa
 

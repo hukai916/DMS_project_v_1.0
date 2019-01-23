@@ -172,6 +172,7 @@ def first_mapper(param, folder_merge, folder_first_mapper): # map merged reads o
                 command = ' '.join(['bwa mem', param.wtfile.as_posix(), infile.as_posix(),
                  '>', outfile.as_posix()])
                 subprocess.run(command, shell=True, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+                print(command)
 
                 # sorting
                 infile  = Path(folder_first_mapper).joinpath(cond+'_bwa.sam')
@@ -179,11 +180,14 @@ def first_mapper(param, folder_merge, folder_first_mapper): # map merged reads o
                 command = ' '.join(['samtools sort -m 250M', infile.as_posix(),
                 '>', outfile.as_posix()])
                 subprocess.run(command, shell=True, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+                print(command)
 
                 # indexing
                 infile  = Path(folder_first_mapper).joinpath(cond+'_bwa.bam')
                 command = ' '.join(['samtools index -m 250M', infile.as_posix()])
                 subprocess.run(command, shell=True, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+                print(command)
+
         except:
             print("Step2: first-round mapping failed!")
             error = 1
@@ -636,7 +640,7 @@ def tsv_plot_output_wrapper(param, folder_plot_input, folder_plot_output_codon):
     else:
         print("Step11: preparing plot output files (codon version) ...")
         folder_plot_output_codon.mkdir(parents=True, exist_ok=True)
-        if 1:
+        try:
             # Plot1:
             for cond in param.condition[:-1]:
                 df1      = pd.read_csv(folder_plot_input.joinpath(cond+'.tsv'), delimiter='\t')
@@ -658,7 +662,7 @@ def tsv_plot_output_wrapper(param, folder_plot_input, folder_plot_output_codon):
             # Plot3:
                 outfile3 = folder_plot_output_codon.joinpath(cond + '_simple2.pdf')
                 tsv_plot_output(param.wtfile, cond, df2, outfilename=outfile3, version=2)
-        else:
+        except:
             error = 1
     if not error:
         print("Step11: plots (codon version) created!")
@@ -713,11 +717,11 @@ def func_wrapper(param, workdir):
     folder_data_sra = workdir.joinpath('data_sra')
 
     if len(param.ngs_data_local) == 0:
-        get_ngs_data_local(param, folder_data_sra)
-    elif param.ngs_data_local[0] in ('to', 'NA', 'N/A'):
-        get_ngs_data_local(param, folder_data_sra)
-    else:
         get_ngs_data_ncbi(param, folder_data_sra)
+    elif param.ngs_data_local[0] in ('to', 'NA', 'N/A'):
+        get_ngs_data_ncbi(param, folder_data_sra)
+    else:
+        get_ngs_data_local(param, folder_data_sra)
 
     # If both NCBI sra and local storage provided, prefer to use local copy.
 
