@@ -6,7 +6,7 @@ which conda
 if [ $? -eq 1 ];then
 echo "**ERROR**
 Dependency in need: Anaconda3.
-To install, follow: https://conda.io/docs/user-guide/install
+To install, follow: https://conda.io/projects/conda/en/latest/user-guide/
 or troubleshooting.txt setup session.
 ************************************************
 After installation, run:
