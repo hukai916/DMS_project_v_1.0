@@ -16,7 +16,7 @@ import os
 import glob # Unix style pathname pattern expansion, this seems to work better then Path().glob()
 from Bio import SeqIO
 from constants import CodonList, AA2CODON, AAList
-from Bio import SeqIO			
+from Bio import SeqIO
 
 class ConfigParam(): # store the configuration paramters
     def __init__(self, configFile):
@@ -709,52 +709,56 @@ def tsv_plot_output_aa_wrapper(param, folder_plot_input, folder_plot_output_aa):
 
 def func_wrapper(param, workdir):
     error = 0
-    if 1:
-        folder_data_sra = workdir.joinpath('data_sra')
-        if not param.ngs_data_local[0] == 'to': # If both NCBI sra and local storage provided, prefer to use local copy.
-            get_ngs_data_local(param, folder_data_sra) # Step0: download and rename sra files
-        else:
-            get_ngs_data_ncbi(param, folder_data_sra)
 
-        folder_ref      = workdir.joinpath('ref')
-        prep_ref(param, folder_ref)
+    folder_data_sra = workdir.joinpath('data_sra')
 
-        folder_merge    = workdir.joinpath('merge')
-        fastq_merger(param, folder_data_sra, folder_merge)
-
-        folder_first_mapper = workdir.joinpath('first_mapper')
-        first_mapper(param, folder_merge, folder_first_mapper)
-
-        folder_qc_INDEL     = workdir.joinpath('qc_INDEL')
-        quality_control_INDEL(param, workdir, folder_qc_INDEL)
-
-        folder_qc_library   = workdir.joinpath('qc_library')
-        quality_control_library_wrapper(param, folder_qc_INDEL, folder_qc_library)
-
-        folder_second_mapper = workdir.joinpath('second_mapper')
-        second_mapper(param, folder_qc_library, folder_second_mapper)
-
-        folder_enrich2_input = workdir.joinpath('enrich2_input')
-        bam2enrich_wrapper(param, folder_second_mapper, folder_enrich2_input)
-
-        folder_enrich2_json = workdir.joinpath('enrich2_json')
-        folder_enrich2_output = workdir.joinpath('enrich2_output')
-        enrich2_json_encoder_wrapper(param, folder_enrich2_json, folder_enrich2_input, folder_enrich2_output)
-        enrich2_wrapper(folder_enrich2_json.joinpath('json.sh'), folder_enrich2_output)
-
-        enrich2_hdf5_extractor_wrapper(param, folder_enrich2_output, _type='codon',)
-        enrich2_hdf5_extractor_wrapper(param, folder_enrich2_output, _type='aa', )
-
-        folder_plot_input = workdir.joinpath('plot_input')
-        tsv_plot_input(param, folder_plot_input, folder_enrich2_output)
-
-        folder_plot_output_codon = workdir.joinpath('plot_output/codon')
-        tsv_plot_output_wrapper(param, folder_plot_input, folder_plot_output_codon)
-
-        folder_plot_output_aa = workdir.joinpath('plot_output/aa')
-        tsv_plot_output_aa_wrapper(param, folder_plot_input, folder_plot_output_aa)
+    if len(param.ngs_data_local) == 0:
+        get_ngs_data_local(param, folder_data_sra)
+    elif param.ngs_data_local[0] in ('to', 'NA', 'N/A'):
+        get_ngs_data_local(param, folder_data_sra)
     else:
-        error = 1
+        get_ngs_data_ncbi(param, folder_data_sra)
+
+    # If both NCBI sra and local storage provided, prefer to use local copy.
+
+    folder_ref      = workdir.joinpath('ref')
+    prep_ref(param, folder_ref)
+
+    folder_merge    = workdir.joinpath('merge')
+    fastq_merger(param, folder_data_sra, folder_merge)
+
+    folder_first_mapper = workdir.joinpath('first_mapper')
+    first_mapper(param, folder_merge, folder_first_mapper)
+
+    folder_qc_INDEL     = workdir.joinpath('qc_INDEL')
+    quality_control_INDEL(param, workdir, folder_qc_INDEL)
+
+    folder_qc_library   = workdir.joinpath('qc_library')
+    quality_control_library_wrapper(param, folder_qc_INDEL, folder_qc_library)
+
+    folder_second_mapper = workdir.joinpath('second_mapper')
+    second_mapper(param, folder_qc_library, folder_second_mapper)
+
+    folder_enrich2_input = workdir.joinpath('enrich2_input')
+    bam2enrich_wrapper(param, folder_second_mapper, folder_enrich2_input)
+
+    folder_enrich2_json = workdir.joinpath('enrich2_json')
+    folder_enrich2_output = workdir.joinpath('enrich2_output')
+    enrich2_json_encoder_wrapper(param, folder_enrich2_json, folder_enrich2_input, folder_enrich2_output)
+    enrich2_wrapper(folder_enrich2_json.joinpath('json.sh'), folder_enrich2_output)
+
+    enrich2_hdf5_extractor_wrapper(param, folder_enrich2_output, _type='codon',)
+    enrich2_hdf5_extractor_wrapper(param, folder_enrich2_output, _type='aa', )
+
+    folder_plot_input = workdir.joinpath('plot_input')
+    tsv_plot_input(param, folder_plot_input, folder_enrich2_output)
+
+    folder_plot_output_codon = workdir.joinpath('plot_output/codon')
+    tsv_plot_output_wrapper(param, folder_plot_input, folder_plot_output_codon)
+
+    folder_plot_output_aa = workdir.joinpath('plot_output/aa')
+    tsv_plot_output_aa_wrapper(param, folder_plot_input, folder_plot_output_aa)
+
 
     if not error:
         print("Congrats! All analyisis finished! Check plot_output folder!")
